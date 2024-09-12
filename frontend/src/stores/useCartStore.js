@@ -48,6 +48,7 @@ export const useCartStore = create((set, get) => ({
 
   clearCart: async () => {
     set({ cart: [], coupon: null, total: 0, subtotal: 0 });
+    toast.success("Cart cleared");
   },
 
   addToCart: async (product) => {
@@ -57,13 +58,13 @@ export const useCartStore = create((set, get) => ({
 
       set((prevState) => {
         const existingItem = prevState.cart.find(
-          (item) => item._id === product._id
+          (item) => item._id === product._id,
         );
         const newCart = existingItem
           ? prevState.cart.map((item) =>
               item._id === product._id
                 ? { ...item, quantity: item.quantity + 1 }
-                : item
+                : item,
             )
           : [...prevState.cart, { ...product, quantity: 1 }];
         return { cart: newCart };
@@ -75,11 +76,12 @@ export const useCartStore = create((set, get) => ({
   },
 
   removeFromCart: async (productId) => {
-    await axios.delete(`/cart`, { data: { productId } });
+    await axios.delete("/cart", { data: { productId } });
     set((prevState) => ({
       cart: prevState.cart.filter((item) => item._id !== productId),
     }));
     get().calculateTotals();
+    toast.success("Product removed from cart");
   },
 
   updateQuantity: async (productId, quantity) => {
@@ -91,7 +93,7 @@ export const useCartStore = create((set, get) => ({
     await axios.put(`/cart/${productId}`, { quantity });
     set((prevState) => ({
       cart: prevState.cart.map((item) =>
-        item._id === productId ? { ...item, quantity } : item
+        item._id === productId ? { ...item, quantity } : item,
       ),
     }));
     get().calculateTotals();
@@ -101,7 +103,7 @@ export const useCartStore = create((set, get) => ({
     const { cart, coupon } = get();
     const subtotal = cart.reduce(
       (sum, item) => sum + item.price * item.quantity,
-      0
+      0,
     );
     let total = subtotal;
 

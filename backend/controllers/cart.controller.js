@@ -6,7 +6,7 @@ export const getCartProducts = async (req, res) => {
 
     // add quantity for each product
     const cartItems = products.map((product) => {
-      const item = req.user.cartItems.fint(
+      const item = req.user.cartItems.find(
         (cartitem) => cartitem.id === product.id
       );
       return { ...product.toJSON(), quantity: item.quantity };
@@ -14,12 +14,10 @@ export const getCartProducts = async (req, res) => {
 
     res.json(cartItems);
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Server error in GET CART PRODUCTS",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Server error in GET CART PRODUCTS",
+      error: error.message,
+    });
   }
 };
 
@@ -65,7 +63,7 @@ export const removeAllFromCart = async (req, res) => {
 
 export const updateQuantity = async (req, res) => {
   try {
-    const { id: productId } = req.params.id;
+    const { id: productId } = req.params;
     const { quantity } = req.body;
     const user = req.user;
     const existingItem = user.cartItems.find((item) => item.id === productId);
