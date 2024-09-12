@@ -7,7 +7,7 @@ const couponSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
-    discountPrecentage: {
+    discountPercentage: {
       type: Number,
       required: true,
       min: 0,
@@ -28,7 +28,9 @@ const couponSchema = new mongoose.Schema(
       unique: true,
     },
   },
-  { timestapms: true }
+  {
+    timestamps: true,
+  }
 );
 
 const Coupon = mongoose.model("Coupon", couponSchema);

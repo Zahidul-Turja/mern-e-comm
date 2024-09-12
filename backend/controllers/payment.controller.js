@@ -20,13 +20,14 @@ export const createCheckoutSession = async (req, res) => {
 
       return {
         price_data: {
-          currence: "usd",
+          currency: "usd",
           product_data: {
             name: product.name,
             images: [product.image],
           },
           unit_amount: amount,
         },
+        quantity: product.quantity || 1,
       };
     });
 
@@ -40,7 +41,7 @@ export const createCheckoutSession = async (req, res) => {
 
       if (coupon) {
         totalAmount -= Math.round(
-          (totalAmount * coupon.discountPrecentage) / 100
+          (totalAmount * coupon.discountPercentage) / 100
         );
       }
     }
@@ -54,7 +55,7 @@ export const createCheckoutSession = async (req, res) => {
       discounts: coupon
         ? [
             {
-              coupon: await createStripeCoupon(coupon.discountPrecentage),
+              coupon: await createStripeCoupon(coupon.discountPercentage),
             },
           ]
         : [],
@@ -93,7 +94,7 @@ export const checkoutSuccess = async (req, res) => {
         await Coupon.findByIdAndUpdate(
           {
             code: session.metadata.couponCode,
-            userId: session.metadata.userid,
+            userId: session.metadata.userId,
           },
           {
             isActive: false,
@@ -142,7 +143,7 @@ async function createStripeCoupon(discountPrecentage) {
 async function createNewCoupon(userId) {
   const newCoupon = new Coupon({
     code: "GIFT" + Math.random().toString(36).substring(2, 8).toUpperCase(),
-    discountPrecentage: 10,
+    discountPercentage: 10,
     expirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     userId: userId,
   });
