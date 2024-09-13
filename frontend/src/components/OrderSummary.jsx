@@ -16,6 +16,7 @@ function OrderSummary() {
   const formattedSubtotal = subtotal.toFixed(2);
   const formattedTotal = total.toFixed(2);
   const formattedSavings = savings.toFixed(2);
+  console.log(formattedSavings);
 
   const handlePayment = async () => {
     const stripe = await stripePromise;

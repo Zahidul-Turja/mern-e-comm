@@ -11,6 +11,8 @@ export const analytics = async (req, res) => {
 
     const dailySalesData = await getDailySalesData(startDate, endDate);
 
+    console.log(dailySalesData, analyticsData);
+
     res.json({
       analyticsData,
       dailySalesData,
@@ -21,7 +23,7 @@ export const analytics = async (req, res) => {
 };
 
 export const getAnalyticsData = async () => {
-  const totalUser = await User.countDocuments();
+  const totalUsers = await User.countDocuments();
   const totalProducts = await Product.countDocuments();
 
   const salesData = await Order.aggregate([
@@ -39,7 +41,7 @@ export const getAnalyticsData = async () => {
     totalRevenue: 0,
   };
   return {
-    user: totalUser,
+    users: totalUsers,
     products: totalProducts,
     totalSales,
     totalRevenue,

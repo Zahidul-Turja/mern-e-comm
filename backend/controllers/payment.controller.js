@@ -7,15 +7,13 @@ export const createCheckoutSession = async (req, res) => {
     const { products, couponCode } = req.body;
 
     if (!Array.isArray(products) || products.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "Invalid or empty products array" });
+      return res.status(400).json({ error: "Invalid or empty products array" });
     }
 
     let totalAmount = 0;
 
     const lineItems = products.map((product) => {
-      const amount = Math.round(product.price * 100); // Stripe takes amount in cents
+      const amount = Math.round(product.price * 100); // stripe wants u to send in the format of cents
       totalAmount += amount * product.quantity;
 
       return {
@@ -38,7 +36,6 @@ export const createCheckoutSession = async (req, res) => {
         userId: req.user._id,
         isActive: true,
       });
-
       if (coupon) {
         totalAmount -= Math.round(
           (totalAmount * coupon.discountPercentage) / 100
@@ -77,16 +74,17 @@ export const createCheckoutSession = async (req, res) => {
     }
     res.status(200).json({ id: session.id, totalAmount: totalAmount / 100 });
   } catch (error) {
-    res.status(500).json({
-      message: "Server error processing CHECKOUT SESSION",
-      error: error.message,
-    });
+    console.error("Error processing checkout:", error);
+    res
+      .status(500)
+      .json({ message: "Error processing checkout", error: error.message });
   }
 };
 
 export const checkoutSuccess = async (req, res) => {
   try {
     const { sessionId } = req.body;
+    const user = req.user;
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (session.payment_status === "paid") {
@@ -111,11 +109,15 @@ export const checkoutSuccess = async (req, res) => {
           quantity: product.quantity,
           price: product.price,
         })),
-        totalAmount: session.amount_total / 100,
-        stripeSessionId: session.id,
+        totalAmount: session.amount_total / 100, // convert from cents to dollars,
+        stripeSessionId: sessionId,
       });
-
       await newOrder.save();
+
+      // clear cart
+      user.cartItems = [];
+      await user.save();
+
       res.status(200).json({
         success: true,
         message:
@@ -141,6 +143,7 @@ async function createStripeCoupon(discountPrecentage) {
 }
 
 async function createNewCoupon(userId) {
+  await Coupon.findOneAndDelete({ userId: userId });
   const newCoupon = new Coupon({
     code: "GIFT" + Math.random().toString(36).substring(2, 8).toUpperCase(),
     discountPercentage: 10,
